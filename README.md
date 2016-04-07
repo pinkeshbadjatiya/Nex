@@ -18,3 +18,9 @@ A simple HTTP server in python using socket programming
 - HOST validation
 - 404 forbidden, 404 not found etc error codes handeled
 - Separate configuration file for server  
+- Client mapping wrt IP address
+- Threading between clients and locks and complete private data(using local variables for each thread)
+
+### TODO
+- Tests for all the errors returned
+- Checking the presence of all the configuration/essential directories before forking the server thread.

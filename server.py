@@ -12,6 +12,8 @@ import errno
 import mimetypes
 from time import gmtime, strftime, localtime
 from datetime import datetime
+import threading
+
 from utils import *
 
 
@@ -25,25 +27,49 @@ class Server:
         self.serverSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)    # Re-use the socket
         self.serverSocket.bind((self.config['HOST_NAME'], self.config['BIND_PORT'])) # bind the socket to a public host, and a port
         self.serverSocket.listen(self.config['MAX_CLIENT_QUEUE'])    # become a server socket
+        self.__clients = {}
+        self.__client_no = 1
 
     def listenForClient(self):
         """ Wait for clients to connect """
+        local_data = threading.local()
         while True:
             self.log(-1, 'Ready to serve...')
             (clientSocket, client_address) = self.serverSocket.accept()   # Establish the connection
-            self.handleClient(clientSocket, client_address)
+            d = threading.Thread(name=self._getClientName(client_address), target=self.handleClient, args=(clientSocket, client_address, local_data))
+            d.setDaemon(True)
+            d.start()
+            # self.handleClient(clientSocket, client_address)
         self.shutdown(0,0)
 
+    def _getClientName(self, cli_addr):
+        """ Return the clientName with appropriate number.
+        If already an old client then get the no from map, else
+        assign a new number.
+        """
+        lock = threading.Lock()
+        lock.acquire()
+        ClientAddr = cli_addr[0]
+        if ClientAddr in self.__clients:
+            lock.release()
+            return "Client-" + str(self.__clients[ClientAddr])
 
-    def handleClient(self, clientSocket, client_address):
-        """ Manage the client which got connected. Has to be done parallely """
+        self.__clients[ClientAddr] = self.__client_no
+        self.__client_no += 1
+        lock.release()
+        return "Client-" + str(self.__clients[ClientAddr])
+
+    def handleClient(self, clientSocket, client_address, local):
+        """ Manage the client which got connected. Has to be done parallely.
+        Use "local" as prefix for all the temporary variables. These are thread safe.
+        """
         try:
             self.log(client_address, 'Connection from: ' + str(client_address))
-            data = clientSocket.recv(self.config['MAX_REQUEST_LEN'])
-            if data == "":  # Ignore the blank requests
+            local.data = clientSocket.recv(self.config['MAX_REQUEST_LEN'])
+            if local.data == "":  # Ignore the blank requests
                 return
             self.log(client_address, 'Sending data back to the client')
-            clientSocket.sendall(self.createResponse(self.parseRequest(client_address, data)))
+            clientSocket.sendall(self.createResponse(self.parseRequest(client_address, local.data)))
         finally:
             clientSocket.close()         # Clean up the connection
 
@@ -197,12 +223,20 @@ class Server:
     def log(self, client, msg):
         """ Log the messages to appropriate place """
         if client == -1:
-            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] %s' %  msg
+            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] (%s) %s' %  (threading.currentThread().getName(), msg)
         else:
-            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] %s:%s %s' % (client[0], client[1], msg)
+            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] (%s) %s:%s %s' % (threading.currentThread().getName(), client[0], client[1], msg)
 
     def shutdown(self, signum, frame):
         self.log(-1, 'Shutting down gracefully...')
+
+        # Wait for all clients to exit
+        main_thread = threading.currentThread()
+        for t in threading.enumerate():
+            if t is main_thread:
+                continue
+            self.log(-1, 'joining %s', t.getName())
+            t.join()
         self.serverSocket.close()
         sys.exit(0)
 
