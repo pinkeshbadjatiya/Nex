@@ -27,6 +27,7 @@ class Server:
         self.serverSocket.listen(self.config['MAX_CLIENT_QUEUE'])    # become a server socket
 
     def listenForClient(self):
+        """ Wait for clients to connect """
         while True:
             self.log(-1, 'Ready to serve...')
             (clientSocket, client_address) = self.serverSocket.accept()   # Establish the connection
@@ -35,6 +36,7 @@ class Server:
 
 
     def handleClient(self, clientSocket, client_address):
+        """ Manage the client which got connected. Has to be done parallely """
         try:
             self.log(client_address, 'Connection from: ' + str(client_address))
             data = clientSocket.recv(self.config['MAX_REQUEST_LEN'])
@@ -46,6 +48,10 @@ class Server:
             clientSocket.close()         # Clean up the connection
 
     def createResponse(self, data):#, last_modified=0):
+        """
+            Create the response from the STATUS_CODE, DATA and MIMETYPE received.
+            Response consists of header + content.
+        """
         response_code = data[0]
         mimetype  = data[1][1]
         data = data[1][0]               # (200, (data, mimetype))
@@ -87,6 +93,7 @@ class Server:
 
 
     def _handleGET(self, client_address, path):
+        """ Process the GET request of the client """
         # print request.command          # "GET"
         # print request.path             # "/who/ken/trust.html"
         # print request.request_version  # "HTTP/1.1"
@@ -124,6 +131,7 @@ class Server:
 
 
     def _handleDirectory(self, dirname):
+        """ Create a HTML page using template injection and render a tablular view of the directory. """
         entry = "<tr><td>[{{-EXTENSION-}}]</td><td><a href='{{-HREF-}}'>{{-FILE_NAME-}}</a></td><td align='right'>{{-DATE_MODIFIED-}}</td><td align='right'>{{-FILE_SIZE-}}</td></tr>"
 
         dirname = dirname.strip("/")      # Remove trailiing/ending back-slashes...
@@ -135,18 +143,17 @@ class Server:
                 'EXTENSION' : "DIR",
                 'HREF' : self._toHREF(dirname + "/" + ent),
                 'FILE_NAME' : ent,
-                'DATE_MODIFIED' : "-",
+                'DATE_MODIFIED' : datetime.fromtimestamp(os.stat(dirname + "/" + ent).st_mtime).strftime("%A %d, %B %Y, %H:%M:%S"),
                 'FILE_SIZE' : "-"
             }
 
+            # if the "ent" is a file
             if os.path.isfile(dirname + "/" + ent):
                 if len(ent.split('.')) > 1:
                     variables['EXTENSION'] = ent.split('.')[-1]
                 else:
                     variables['EXTENSION'] = "---"
-            if os.path.isfile(dirname + "/" + ent):
                 variables['FILE_SIZE'] = sizeof_fmt(os.stat(dirname + "/" + ent).st_size)
-                variables['DATE_MODIFIED'] = datetime.fromtimestamp(os.stat(dirname + "/" + ent).st_mtime).strftime("%A %d, %B %Y, %H:%M:%S")
 
             all_entries += self._inject_variables(entry, variables)
 

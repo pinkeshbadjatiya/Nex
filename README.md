@@ -1,8 +1,8 @@
-## NEX
+## Nex
 A simple HTTP server in python using socket programming
 
 ### Instructions
-- 'settings.conf' file contains all the settings related to the server. Change them as per your need before running the server
+- `settings.conf` file contains all the settings related to the server. Change them as per your need before running the server
 - Run `python server.py` to initialize the server.
 
 ### Notes
@@ -14,6 +14,7 @@ A simple HTTP server in python using socket programming
 - Proper status_codes if file found or not ...
 - Mimetype taken into account of returned file
 - Variable injection in template
+- Directory listing.
 - HOST validation
 - 404 forbidden, 404 not found etc error codes handeled
 - Separate configuration file for server  
