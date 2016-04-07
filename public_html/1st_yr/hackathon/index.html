@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta name="description" content="Draw Pad">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>Draw Pad</title>
+<script>
+function showHint(str)
+{
+  var xmlhttp;
+  if (str.length==0)
+      { 
+          document.getElementById("txtHint").innerHTML="";
+            return;
+            }
+    xmlhttp=new XMLHttpRequest();
+
+  xmlhttp.onreadystatechange=function()
+      {
+          if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                {
+                      document.getElementById("txtHint").innerHTML=xmlhttp.responseText;
+                          }
+            }
+  xmlhttp.open("GET","content.php?q="+str,true);
+  xmlhttp.send();
+}
+</script>
+
+  </head>
+
+<body><br/>
+<img id="mono" src=http://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Disqus_d_icon_%28blue%29.svg/1024px-Disqus_d_icon_%28blue%29.svg.png alt="Mono">
+<h1>
+Draw Pad
+</h1>
+
+<div>
+<form action=""> 
+First name: <input type="text" id="txt1" onkeyup="showHint(this.value)" />
+</form>
+</div>
+<h3>Start typing a name in the input field below:</h3>
+<form action=""> 
+First name: <input type="text" id="txt1" onkeyup="showHint(this.value)" />
+</form>
+<p>Suggestions: <span id="txtHint"></span></p>
+
+
+    <footer>
+      <p id="createdby">created by</p>
+      <p>Pinkesh Badjatiya</p>
+      <p>Contact information:pinkesh.badjatiya@research.iiit.ac.in</p>
+    </footer>
+
+  </body>
+</html>
+
+

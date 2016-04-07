@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+
+#PLAIN {
+ border-collapse:collapse;
+margin:0px;
+padding:0px;
+}
+td {
+padding:0px;
+}
+
+.card {
+    position:relative;
+    text-align:center;
+    height:75px;
+    width:75px;
+    padding:0px;
+    margin:0px;
+}
+.front, .back {
+    height:100%;
+    width:100%;
+    position:absolute;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transition: -webkit-transform 0.3s;
+    transition: transform 0.3s;
+}
+.front {
+    background-color: #ff5078;
+}
+.back {
+    background-color: #1e1e1e;
+    -webkit-transform: rotateY(-180deg);
+    transform: rotateY(-180deg);
+}
+.card.effect__click.flipped .front {
+    -webkit-transform: rotateY(-180deg);
+    transform: rotateY(-180deg);
+}
+.card.effect__click.flipped .back {
+    -webkit-transform: rotateY(0);
+    transform: rotateY(0);
+}
+
+.sideHeader {
+    background-color: #34BC9D;
+    padding:6px;
+    text-align:center;
+    margin:0px;
+}
+
+#chatTable, #chatTable td {
+    border-collapse: collapse;
+    border:2px solid black;
+}
+
+#chatTable {
+    width:250px;
+}
+
+#chat {
+    width:240px;
+    padding:3px;
+    background-color: white;
+}
+
+#displayChat {
+    height:250px;
+    width:240px;
+    padding:5px;
+    background-color: white;
+    overflow: auto;
+}
+
+.TXT {
+    margin:3px;
+    font-size:12px;
+}
+
+.me {
+    background-color: green;
+    padding:3px;
+    text-align: left;
+    width:60%;
+    float:left;
+}
+
+
+.other {
+    background-color: yellow;
+    padding:3px;
+    white-space: wrap;
+    width:60%;
+    float:right;
+}
+
+
+
+</style>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+</head>
+<body>
+
+
+<table id="PLAIN" onmousedown="start()"></table>
+
+
+<div style="position:fixed; bottom:0px; right:25px; width:250px;">
+    <table id="chatTable">
+        <tr>
+            <td onclick="$('#HIDE1, #HIDE2').toggle()">
+                <p class="sideHeader">Send Message</p>
+            </td>
+        </tr>
+        <tr id="HIDE1">
+            <td>
+                <div id="displayChat">
+                    <div class="me TXT"> pa lakj sks sjsk sksj ks sjksjs kjs ksj </div>
+                    <div class="other TXT"> anka jaskj ajs akshjakshjakhdj d j djd jd d </div>
+                    <div class="me TXT"> pa lakj sks sjsk sksj ks sjksjs kjs ksj </div>
+                </div>
+            </td>
+        </tr>
+        <tr id="HIDE2">
+            <td>
+                <form id="Form">
+                    <input type="text" name="input" placeholder="Press Enter To Send the msg" id="chat"></input>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+
+
+$('#Form').submit(function () {
+ postChat();
+ return false;
+});
+
+function postChat() {
+    var V = $('#chat').val();
+    alert(V);
+}
+
+function erase() {
+$('#PLAIN td').animate({padding:'0'})
+}
+
+function show() {
+$('#PLAIN td').animate({padding:'1'})
+}
+
+
+var tab = document.getElementById('PLAIN');
+var len = 30;
+var hei = 60;
+
+for (var j = 1; j <= hei; j++) {
+    var ro = document.createElement('tr');
+    for (var i = 1; i <= len; i++) {
+        var s = '<td><div class="card effect__click" id="' + j + '_' + i + '" ><div class="front"></div><div class="back"></div></div></td>'
+        ro.innerHTML += s;
+    }
+
+    tab.appendChild(ro);
+    console.log(ro);
+}
+
+function start() {
+var counter = 1;
+for (var j = 1; j <= hei; j++) {
+        for (var i = 1; i <= len; i++) {
+            
+
+  // create a closure to preserve the value of "i"
+  (function(j,i,counter){
+
+    window.setTimeout(function(){
+      var e = document.getElementById(j+'_'+i);
+            var c = e.classList;
+            c.contains('flipped') === true ? c.remove('flipped') : c.add('flipped');
+    }, counter * 100);
+
+  }(j,i,counter));
+
+counter++;
+  
+        }
+    }
+
+}
+
+</script>
+
+</body>
+</html>

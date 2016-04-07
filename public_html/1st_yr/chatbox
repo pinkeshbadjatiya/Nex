@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<title>
+  Chat Box
+</title>
+<style>
+h1#heading{
+  color:red;
+  font-size:80px;
+  text-align:center;
+}
+
+h2{
+	text-align:center;
+}
+
+footer{
+  line-height:1px;
+  color:red;
+  text-align:center;
+}
+
+#HCB_comment_box #hcb_form_content,
+#HCB_comment_box #hcb_form_email, 
+#HCB_comment_box #hcb_form_name, 
+#HCB_comment_box #hcb_form_website {
+  background-color:#ffd;
+}
+
+#HCB_comment_box blockquote {
+  color:red;
+}
+
+#HCB_comment_box .submit {
+  background:none; /* Clear twitter bootstrap style. */
+  background-color:green;
+  border:1px solid darkgreen;
+  color: white;
+}
+
+</style>
+</head>
+<body onload="loadchat()">
+
+<h1 id="heading"> Chat Box </h1>
+<h2> ASCII_PRINTER - <a href="http://researchweb.iiit.ac.in/~pinkesh.badjatiya/ascii_printer" target="_BLANK">http://researchweb.iiit.ac.in/~pinkesh.badjatiya/ascii_printer</a></h2>
+
+<br/>
+
+<!--
+<form>
+  Chat Box:<input type="text" id="myComment" value="Enter your text here to publish it on page....">
+  <button type="button" onclick="write()">Post</button>
+</form>
+-->
+
+
+<!-- begin htmlcommentbox.com -->
+<div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">Comment Form</a> is loading comments...</div>
+<link rel="stylesheet" type="text/css" href="//www.htmlcommentbox.com/static/skins/bootstrap/twitter-bootstrap.css?v=0" />
+<script type="text/javascript" id="hcb"> /*<!--*/ if(!window.hcb_user){hcb_user={};} (function(){var s=document.createElement("script"), l=(""+window.location).replace(/'/g,"%27") || hcb_user.PAGE, h="//www.htmlcommentbox.com";s.setAttribute("type","text/javascript");s.setAttribute("src", h+"/jread?page="+encodeURIComponent(l).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24IeLqv831DmJqYZTjgEyCs."+"&opts=16862&num=10");if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);})(); /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+<!--
+<script>
+function write()
+{
+  var text = document.getElementById("myComment").value;
+
+}
+
+function loadchat()
+{
+
+}
+
+</script>
+-->
+
+<footer>
+  <p id="createdby">created by</p>
+  <p>Pinkesh Badjatiya</p>
+  <p>Contact information:pinkesh.badjatiya@research.iiit.ac.in</p>
+</footer>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

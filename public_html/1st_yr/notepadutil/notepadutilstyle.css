@@ -1,0 +1,151 @@
+
+
+title
+{
+	color:white;
+	text-align:center;
+}
+
+body
+{
+	background-image:url(bg_edit.jpg);
+	background-repeat:no-repeat;
+	background-size:1400px
+}
+
+h1
+{
+	font-size:320%;
+	text-align:center;
+}
+
+h2
+{
+	text-align:center;
+}
+
+h3 
+{
+	text-align:center;
+}
+
+p#p01	
+{
+	font-size:100%;
+}
+
+p#p02	
+{
+	color:orange;
+}
+
+
+div#form_details
+{
+	margin-left:30px;
+}
+
+div#content	
+{
+	background-color:black;
+	color:white;
+	float:center;
+	padding:20px;
+	border-radius:20px 20px 20px 20px;
+	background-transparency:50%;
+}
+
+
+ul#menu		
+{
+	text-align:center;
+}
+
+ul#menu li	
+{
+	display:inline;
+	width:100%;
+	text-align:center;
+}
+
+ul#menu li a
+{
+	background-color:black;
+	color:white;
+	padding:10px 20px;
+	border-radius:4px 4px 0 0;
+	text-decoration:none;
+}
+
+ul#menu li a:hover
+{
+	background-color:orange;
+}
+
+a:link  
+{
+	color:red;
+	background-color:transparent;
+}
+
+a:visited 
+{
+	color:green;
+	background-color:transparent;
+}
+
+a:hover   
+{
+	color:#ff0000;
+	background-color:transparent;
+}
+
+a:active  
+{
+	color:black;
+	background-color:red;
+}
+
+img#obama	
+{
+	height:300px;
+	border:6px solid white;
+}
+
+p#createdby	
+{
+	font-size:200%;
+}
+
+h2#refresh_note	
+{
+	text-align:center;
+	color:red;
+	background-color:white;
+	border-radius:15px 15px 15px 15px;
+	font-size:20px;
+}
+
+p#underconstruction	
+{
+	text-align:center;
+	font-size:35px;
+	color:red;
+}
+
+img.charac	
+{
+	height:65px;
+	box-shadow:12px 12px 12px black;
+	border-radius:6px;
+}
+
+div#end,div
+{
+	text-align:center;
+}
+
+p#p02,p#createdby
+{
+	text-align:center;
+}

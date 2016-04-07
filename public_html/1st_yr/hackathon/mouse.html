@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>E - Universal Drag/Drop</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<style>
+*{
+margin:0;
+padding:0;
+}
+html,body,#svgDiv{
+width:800px;
+height:600px;
+}
+#mySVG{
+display:block;
+}
+</style>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body style='font-family:arial'>
+
+<div id="svgDiv" style='background-color:lightblue;'>
+<svg id="mySVG" width="100%" height="100%" onmousedown=startDrawing(evt) onmousemove=svgCursor(evt) onmouseup=endDrawing(evt)>
+</svg>
+</div>
+
+
+<script id=myScript> 
+var Draw=false;
+var DrawTarget=null;
+var OffsetX = 0;
+var OffsetY = 0;
+var svgns = "http://www.w3.org/2000/svg";
+var elem;
+var svg = document.getElementById("mySVG");
+var svgDiv=document.getElementById("svgDiv");
+
+var dataToSend = {};
+
+function startDrawing(evt)
+{
+	var rect = svgDiv.getBoundingClientRect();	
+	var x = evt.clientX-rect.left;
+	var y = evt.clientY-rect.top;
+	Draw=true;
+	elem=document.createElementNS(svgns,"path")
+	elem.setAttribute("fill","none")
+	elem.setAttribute("stroke","#000000")
+	elem.setAttribute("stroke-width","2")
+	elem.setAttribute("d","M"+x+" " +y)
+	svg.appendChild(elem);
+	dataToSend.sw = 2;
+	dataToSend.sc = "#000000";
+}
+
+function svgCursor(evt)
+{
+	var rect = svgDiv.getBoundingClientRect();
+	var x = evt.clientX-rect.left;
+	var y = evt.clientY-rect.top;
+	if(Draw)
+	{
+		elem.setAttribute("d", elem.getAttribute("d") + " L" + x + " " + y);
+	}
+}
+function endDrawing(evt)
+{
+	Draw=false;
+	dataToSend.d = elem.getAttribute("d");
+	sendDataToServer(dataToSend);
+}
+function sendDataToServer(data) {
+	$.post( "save.php", {myData: data}, function(r){ console.log(r) } );
+}
+function drawPath(data) {
+
+}
+ 
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <style type="text/css" media="screen">
+          canvas, img { display:block; margin:1em auto; border:1px solid black; }
+      canvas { background:url(http://www.shareyouressays.com/wp-content/uploads/2013/11/clip_image002.jpg) }
+  </style>
+    <script type="text/javascript">
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+var circles = [];
+
+var draw = function (context, x, y, fillcolor, radius, linewidth, strokestyle, fontcolor, textalign, fonttype, filltext) {
+    context.beginPath();
+    context.arc(x, y, radius, 0, 2 * Math.PI, false);
+    context.fillStyle = fillcolor;
+    context.fill();
+    context.lineWidth = linewidth;
+    context.strokeStyle = strokestyle;
+    context.stroke();
+    
+    context.fillStyle = fontcolor;
+    context.textAlign = textalign;
+    context.font = fonttype;
+    
+    context.fillText(filltext, x, y);    
+};
+
+var Circle = function(x, y, radius) {
+    this.left = x - radius;
+    this.top = y - radius;
+    this.right = x + radius;
+    this.bottom = y + radius;
+};
+
+var drawCircle = function (context, x, y, fillcolor, radius, linewidth, strokestyle, fontcolor, textalign, fonttype, filltext, circles) {
+    draw(context, x, y, fillcolor, radius, linewidth, strokestyle, fontcolor, textalign, fonttype, filltext);
+    var circle = new Circle(x, y, radius);
+    circles.push(circle);  
+};
+
+      x=[220,462,439,324,264,136,109,187,203,193,318,160,171,214,161,450,424,437,462,301,173,151,364,200,427,230,236,354,197]
+      y=[394,184,223,236,295,401,264,182,151,86,263,404,481,278,337,247,237,274,219,323,147,207,209,487,260,157,209,280,193]
+ 
+for (i=0;i<29;i++)
+{
+drawCircle(context, x[i], y[i], "green", 10, 1, "#003300", "white", "center", "10px Arial", i+1, circles);
+}
+$('#myCanvas').click(function (e) {
+    var clickedX = e.pageX - this.offsetLeft;
+    var clickedY = e.pageY - this.offsetTop;
+    
+    for (var i = 0; i < circles.length; i++) {
+        if (clickedX < circles[i].right && clickedX > circles[i].left && clickedY > circles[i].top && clickedY < circles[i].bottom) {
+            alert ('clicked number ' + (i + 1));
+        }
+    }
+});
+    </script>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="560" height="620"></canvas>
+  </body>
+</html>

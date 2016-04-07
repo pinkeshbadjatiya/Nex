@@ -1,0 +1,33 @@
+body {
+	background-color:#EFEFEF;
+}
+
+div {
+	background-color:#5880B5;
+	padding:10px;
+	margin:0px;
+	border-radius:8px 8px 8px 8px;
+}
+
+img#mono {
+	width:75px;
+	float:left;
+}
+
+img#mono:hover {
+	
+        -moz-transform:scale(1.51);
+        -moz-transition: 1s ease-in;
+        -moz-transition: 1s ease-out;
+        -webkit-transform:scale(1.01);
+        -webkit-transition: 1s ease-in;
+        -webkit-transition: 1s ease-out;
+
+
+}
+
+footer {
+	text-align:center;
+	line-height:2px;
+}
+

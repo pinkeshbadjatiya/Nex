@@ -1,0 +1,8 @@
+- Do not add trailing '/' in PUBLIC_HTML and ERROR_DIR or any other directory in settings.conf
+- Proper status_codes if file found or not ...
+- Mimetype taken into account of returned file
+- variable injection in template
+- HOST validation
+- 404 forbidden, 404 not found etc error codes handeled
+- Separate configuration file for server
+-
