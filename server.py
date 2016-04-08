@@ -73,41 +73,60 @@ class Server:
         finally:
             clientSocket.close()         # Clean up the connection
 
-    def createResponse(self, data):#, last_modified=0):
+
+    def createResponse(self, content, response_code=200, mimetype='text/html', encoding='UTF-8', additional_params=None):#, last_modified=0):
         """
             Create the response from the STATUS_CODE, DATA and MIMETYPE received.
-            Response consists of header + content.
+            Receives    => (content, 200, text/html, UTF-8, additionalParamsDict)
+            Returns     => consists of header + content.
         """
-        response_code = data[0]
-        mimetype  = data[1][1]
-        data = data[1][0]               # (200, (data, mimetype))
 
-        res = "HTTP/1.0 " + self.config['STATUS_STRING'][str(response_code)] + "\r\n"
-        res += "Content-Type: " + mimetype + "\r\n"
-        res += "Date: " + strftime("%a, %d %b %Y %X GMT", gmtime()) + "\r\n"
-        # if last_modified:
-        #     res += "Last Modified: " + last_modified + "\r\n"
-        res += 'Server: ' + self.config['SERVER_NAME'] + "\r\n"
-        res += 'Connection: close' + '\r\n'  # signal that the conection wil be closed after complting the request
-        res += "\r\n"
-        res += data
+        if len(content) >= 3:
+            mimetype = content[2]
+        if len(content) >= 2:
+            response_code = content[1]
 
-        return res.encode("utf8")
+        header_params = {
+            'Content-Type': '%s; charset=%s' %(mimetype, encoding) if encoding else mimetype,
+            'Date': strftime("%a, %d %b %Y %X GMT", gmtime()),
+            'Server': self.config['SERVER_NAME'],
+            'Connection': 'close',
+            # 'Connection' : 'Keep-Alive',  # signal that the conection wil be closed after complting the request
+            # 'Keep-Alive': 'timeout=5, max=100',
+            # 'Content-Length': "11434843",
+            # 'Etag': "ae7b5b-52dca51ae0420"',
+            # 'Accept-Ranges': "bytes",
+        }
+
+        if len(content) >= 4:
+            for k, v in additional_params.iteritems():
+                header_params[k] = v
+        content = content[0]
+
+        if encoding:
+            content = content.encode(encoding)
+
+        header = "HTTP/1.0 %s\r\n%s\r\n" % (
+            self.config['STATUS_STRING'][str(response_code)],
+            ''.join('%s: %s\r\n' % kv for kv in header_params.iteritems())
+        )
+        return header + content
 
 
     def parseRequest(self, client_address, data):
         """ Parses the request and returns the error code and body content.
+            Returns     => content, response_code
         """
         request = HTTPRequest(data)
         if request.error_code != None:
-            return (request.error_code, request.error_message)
+            return request.error_message, request.error_code
         if not self._ishostAllowed(request.headers['host']):
-            return (403, self._readFile(self.config['ERROR_DIR'] + '/' + str(403) + ".html"))
+            return self._readFile(self.config['ERROR_DIR'] + '/' + str(403) + ".html"), 403
 
         if request.command == "GET":
             return self._handleGET(client_address, request.path)
         else:
-            return (500, self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"))
+            return self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"), 500
 
 
     def _ishostAllowed(self, host):
@@ -132,11 +151,11 @@ class Server:
 
         # For both directory and files, check if path exists
         if not os.path.exists(filepath):
-            return (404, self._readFile(self.config['ERROR_DIR'] + '/' + str(404) + ".html"))
+            return self._readFile(self.config['ERROR_DIR'] + '/' + str(404) + ".html"), 404
 
         # Check if read permission
         if not (os.access(filepath, os.R_OK) and filepath.startswith(self.config['PUBLIC_HTML'])):
-            return (403, self._readFile(self.config['ERROR_DIR'] + '/' + str(403) + ".html"))
+            return self._readFile(self.config['ERROR_DIR'] + '/' + str(403) + ".html"), 403
 
         # Check if directory but path exists
         if not os.path.isfile(filepath):
@@ -147,23 +166,24 @@ class Server:
             fp = open(filepath, "rb")
         except IOError as e:
             if e.errno == errno.EACCES:
-                return (500, self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"));
+                return self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"), 500
             # Not a permission error.
             raise
         else:
             with fp:
-                # >> return (200,(data,mimetype))
-                return (200, (fp.read().decode("utf8"), mimetypes.guess_type(filepath)[0]))
+                # >> return data, 200, mimetype
+                return fp.read(), 200, self._guessMIME(filepath)
 
 
     def _handleDirectory(self, dirname):
         """ Create a HTML page using template injection and render a tablular view of the directory. """
+
         entry = "<tr><td>[{{-EXTENSION-}}]</td><td><a href='{{-HREF-}}'>{{-FILE_NAME-}}</a></td><td align='right'>{{-DATE_MODIFIED-}}</td><td align='right'>{{-FILE_SIZE-}}</td></tr>"
 
         dirname = dirname.strip("/")      # Remove trailiing/ending back-slashes...
 
         all_entries = ""
-        template = self._readFile(self.config['OTHER_TEMPLATES'] + '/' + "dir.html")[0]
+        template = self._readFile(self.config['OTHER_TEMPLATES'] + '/' + "dir.html")
         for ent in os.listdir(dirname):
             variables = {
                 'EXTENSION' : "DIR",
@@ -192,7 +212,7 @@ class Server:
         if dicto['BACK_HREF'] == "":
             dicto['BACK_HREF'] = "/"
 
-        return (200, (self._inject_variables(template, dicto), "text/html"))
+        return self._inject_variables(template, dicto), 200
 
 
     def _inject_variables(self, template, var_dict):
@@ -208,12 +228,17 @@ class Server:
             fp = open(filename)
         except IOError as e:
             if e.errno == errno.EACCES:
-                return self._readErrorFile(500);
+                return self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html")
             # Not a permission error.
             raise
         else:
             with fp:
-                return (fp.read().decode('utf8'), mimetypes.guess_type(filename)[0])     # return (data, mimetype)
+                return fp.read()     # return (data, mimetype)
+
+
+    def _guessMIME(self, filename):
+        return mimetypes.guess_type(filename)[0]
+
 
     def _toHREF(self, path):
         """ Return relative path (from public_html) from absolute path """
@@ -227,11 +252,12 @@ class Server:
         else:
             print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] (%s) %s:%s %s' % (threading.currentThread().getName(), client[0], client[1], msg)
 
-    def shutdown(self, signum, frame):
-        self.log(-1, 'Shutting down gracefully...')
 
-        # Wait for all clients to exit
-        main_thread = threading.currentThread()
+    def shutdown(self, signum, frame):
+        """ Handle the exiting server. Clean all traces """
+
+        self.log(-1, 'Shutting down gracefully...')
+        main_thread = threading.currentThread()        # Wait for all clients to exit
         for t in threading.enumerate():
             if t is main_thread:
                 continue
@@ -239,6 +265,7 @@ class Server:
             t.join()
         self.serverSocket.close()
         sys.exit(0)
+
 
 if __name__ == "__main__":
     config = loadConfig('settings.conf')
