@@ -32,6 +32,8 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Threading between clients and locks and complete private data(using local variables for each thread)
 - Tests written using nosetests and integrated in Travis-CI
 - Thread safe logging
+- Audio/Video/Image rendering
+- URL encoding/decoding
 
 ### TODO
 - Tests for all the errors returned

@@ -14,6 +14,8 @@ from time import gmtime, strftime, localtime
 from datetime import datetime
 import threading
 import logging
+import urllib
+import binascii
 
 from utils import *
 
@@ -75,8 +77,10 @@ class Server:
                 return
             self.log(client_address, 'Sending data back to the client')
             clientSocket.sendall(self.createResponse(self.parseRequest(client_address, local.data)))
+            clientSocket.close()
         finally:
             clientSocket.close()         # Clean up the connection
+
 
 
     def createResponse(self, content, response_code=200, mimetype='text/html', encoding='UTF-8', additional_params=None):#, last_modified=0):
@@ -95,10 +99,10 @@ class Server:
             'Content-Type': '%s; charset=%s' %(mimetype, encoding) if encoding else mimetype,
             'Date': strftime("%a, %d %b %Y %X GMT", gmtime()),
             'Server': self.config['SERVER_NAME'],
-            'Connection': 'close',
-            # 'Connection' : 'Keep-Alive',  # signal that the conection wil be closed after complting the request
+            # 'Connection': 'close',
+            'Connection' : 'close',  # signal that the conection wil be closed after completing the request
+            'Content-Length': len(content[0]),
             # 'Keep-Alive': 'timeout=5, max=100',
-            # 'Content-Length': "11434843",
             # 'Etag': "ae7b5b-52dca51ae0420"',
             # 'Accept-Ranges': "bytes",
         }
@@ -108,14 +112,14 @@ class Server:
                 header_params[k] = v
         content = content[0]
 
-        if encoding:
-            content = content.encode(encoding)
+        # if encoding:
+            # content = content.encode(encoding)
 
         header = "HTTP/1.0 %s\r\n%s\r\n" % (
             self.config['STATUS_STRING'][str(response_code)],
             ''.join('%s: %s\r\n' % kv for kv in header_params.iteritems())
         )
-        return header + content
+        return header.encode('utf8') + content
 
 
     def parseRequest(self, client_address, data):
@@ -123,6 +127,8 @@ class Server:
             Returns     => content, response_code
         """
         request = HTTPRequest(data)
+        request.path = url=urllib.unquote(request.path).decode('utf8')
+
         if request.error_code != None:
             return request.error_message, request.error_code
         if not self._ishostAllowed(request.headers['host']):
