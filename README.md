@@ -1,5 +1,5 @@
 ## Nex
-A simple HTTP server in python using socket programming
+A simple Multi-Threaded HTTP server in python using socket programming
 
 [![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
 
@@ -31,6 +31,7 @@ A simple HTTP server in python using socket programming
 - Client mapping wrt IP address
 - Threading between clients and locks and complete private data(using local variables for each thread)
 - Tests written using nosetests and integrated in Travis-CI
+- Thread safe logging
 
 ### TODO
 - Tests for all the errors returned

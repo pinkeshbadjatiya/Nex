@@ -13,9 +13,13 @@ import mimetypes
 from time import gmtime, strftime, localtime
 from datetime import datetime
 import threading
+import logging
 
 from utils import *
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(CurrentTime)-10s] (%(ThreadName)-10s) %(message)s',
+                    )
 
 class Server:
     """ The server class """
@@ -29,6 +33,7 @@ class Server:
         self.serverSocket.listen(self.config['MAX_CLIENT_QUEUE'])    # become a server socket
         self.__clients = {}
         self.__client_no = 1
+
 
     def listenForClient(self):
         """ Wait for clients to connect """
@@ -247,10 +252,14 @@ class Server:
 
     def log(self, client, msg):
         """ Log the messages to appropriate place """
-        if client == -1:
-            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] (%s) %s' %  (threading.currentThread().getName(), msg)
-        else:
-            print >>sys.stderr, '[' + strftime("%a, %d %b %Y %X", localtime()) + '] (%s) %s:%s %s' % (threading.currentThread().getName(), client[0], client[1], msg)
+        LoggerDict = {
+            'CurrentTime' : strftime("%a, %d %b %Y %X", localtime()),
+            'ThreadName' : threading.currentThread().getName()
+        }
+        if client == -1:       # Main Thread
+            logging.debug('%s', msg, extra=LoggerDict)
+        else:                  # Child threads or Request Threads
+            logging.debug('%s:%s %s', client[0], client[1], msg, extra=LoggerDict)
 
 
     def shutdown(self, signum, frame):
