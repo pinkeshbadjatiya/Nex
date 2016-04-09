@@ -1,7 +1,12 @@
+
+from __future__ import absolute_import, division, print_function
+from builtins import *
+
 import sys
 import json
-from BaseHTTPServer import BaseHTTPRequestHandler
-from StringIO import StringIO
+from http.server import BaseHTTPRequestHandler
+from io import StringIO
+
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','K','M','G','T','P','E','Z']:
@@ -16,18 +21,20 @@ def loadConfig(fileName):
         with open(fileName,'r') as d:
             return json.load(d)
     except IOError:
-        print "Error: File does not appear to exist."
+        print("Error: File does not appear to exist.")
         sys.exit(1)
     except ValueError:
-        print "Error: Config file format not correct."
+        print("Error: Config file format not correct.")
         sys.exit(1)
     except:
-        print "Error: Something went wrong trying to load the settings."
+        print("Error: Something went wrong trying to load the settings.")
         sys.exit(1)
 
 
 class HTTPRequest(BaseHTTPRequestHandler):
     def __init__(self, request_text):
+        # request_text = str(request_text).encode('utf-')
+        request_text = request_text.decode('utf-8')
         self.rfile = StringIO(request_text)
         self.raw_requestline = self.rfile.readline()
         self.error_code = self.error_message = None

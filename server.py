@@ -1,5 +1,8 @@
 #! /usr/bin/python
 
+from __future__ import absolute_import, division, print_function
+from builtins import *
+
 from socket import *
 from time import gmtime, strftime
 import sys
@@ -16,6 +19,7 @@ import threading
 import logging
 import urllib
 import binascii
+from io import StringIO
 
 from utils import *
 
@@ -276,7 +280,7 @@ class Server:
         for t in threading.enumerate():
             if t is main_thread:
                 continue
-            self.log(-1, 'joining %s', t.getName())
+            self.log(-1, 'joining ' + t.getName())
             t.join()
         self.serverSocket.close()
         sys.exit(0)
