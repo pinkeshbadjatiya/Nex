@@ -7,7 +7,7 @@ A simple Multi-Threaded HTTP server in python using socket programming
 ### Instructions
 - `settings.conf` file contains all the settings related to the server. Change them as per your need before running the server
 - Run `python server.py` to initialize the server.
-- `tests/` directory includes all the sample files that are used for nose-testing.
+- `tests/` directory includes all the sample files that are used for nose2-testing.
 - `public_html` is the server directory that is used by the server to host the codes.
 - `error_pages` contains all the templates of various error codes.
 - `other_templates` contains other templates used for rendering by the Nex server.
@@ -26,14 +26,15 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Variable injection in template
 - Directory listing.
 - HOST validation
-- 404 forbidden, 404 not found etc error codes handeled
+- 403 forbidden, 404 not found etc error codes handled
 - Separate configuration file for server  
-- Client mapping wrt IP address
+- Client mapping with IPv4 address
 - Threading between clients and locks and complete private data(using local variables for each thread)
-- Tests written using nosetests and integrated in Travis-CI
+- Tests written using nose2 and integrated in Travis-CI
 - Thread safe logging
 - Audio/Video/Image rendering
 - URL encoding/decoding
+- py2 and py3 support (partial support for py3 for now)
 
 ### TODO
 - Tests for all the errors returned
