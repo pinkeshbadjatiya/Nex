@@ -3,7 +3,6 @@ A simple Multi-Threaded HTTP server in python using socket programming
 
 [![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
 
-
 ### Instructions
 - `settings.conf` file contains all the settings related to the server. Change them as per your need before running the server
 - Run `python server.py` to initialize the server.
@@ -12,13 +11,9 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - `error_pages` contains all the templates of various error codes.
 - `other_templates` contains other templates used for rendering by the Nex server.
 
-
-
-
 ### Notes
 - Do not add trailing '/' in PUBLIC_HTML and ERROR_DIR or any other directory in settings.conf
 - All the essential directories must be present in the appropriate location as mentioned in the configuration file.
-
 
 ### Features Supported
 - Proper status_codes if file found or not ...
