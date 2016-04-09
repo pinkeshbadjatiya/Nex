@@ -1,3 +1,4 @@
-nose
+six
+nose2
 logging
 future
