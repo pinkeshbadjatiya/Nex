@@ -19,7 +19,7 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Proper status_codes if file found or not ...
 - Mimetype taken into account of returned file
 - Variable injection in template
-- Directory listing.
+- Listing contents of Directory with details about the files.
 - HOST validation
 - 403 forbidden, 404 not found etc error codes handled
 - Separate configuration file for server  
