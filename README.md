@@ -35,6 +35,7 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Tests for all the errors returned
 - Checking the presence of all the configuration/essential directories before forking the server thread.
 - Separate error pages from actual functions and break the flow if error to respond error funcs.
+- Split server class into multiple ones.(PEP8)
 - Line 255  - server.py
 - Line 82 - server.py
 - Respect more headers
