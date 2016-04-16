@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from builtins import *
 
-from socket import *
+import socket
 from time import gmtime, strftime
 import sys
 import threading
@@ -27,16 +27,20 @@ logging.basicConfig(level=logging.DEBUG,
                     format='[%(CurrentTime)-10s] (%(ThreadName)-10s) %(message)s',
                     )
 
+MAX_DATA_RECV = 999999  # max number of bytes we receive at once for proxy server
+BLOCKED = ['blocked.com']            # just an example. Remove with [""] for no blocking at all.
+
+
 class Server:
     """ The server class """
 
     def __init__(self, config):
         signal.signal(signal.SIGINT, self.shutdown)  # Shutdown on Ctrl+C
         self.config = config                                         # Save config in server
-        self.serverSocket = socket(AF_INET, SOCK_STREAM)             # Create a TCP socket
-        self.serverSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)    # Re-use the socket
+        self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)             # Create a TCP socket
+        self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # Re-use the socket
         self.serverSocket.bind((self.config['HOST_NAME'], self.config['BIND_PORT'])) # bind the socket to a public host, and a port
-        self.serverSocket.listen(self.config['MAX_CLIENT_QUEUE'])    # become a server socket
+        self.serverSocket.listen(self.config['MAX_CLIENT_BACKLOG'])    # become a server socket
         self.__clients = {}
         self.__client_no = 1
 
@@ -47,10 +51,12 @@ class Server:
         while True:
             self.log(-1, 'Ready to serve...')
             (clientSocket, client_address) = self.serverSocket.accept()   # Establish the connection
-            d = threading.Thread(name=self._getClientName(client_address), target=self.handleClient, args=(clientSocket, client_address, local_data))
+            if self.config['PROXY_SERVER'].lower() == "true":
+                d = threading.Thread(name='(P)'+self._getClientName(client_address), target=self.proxy_thread, args=(clientSocket, client_address))
+            else:
+                d = threading.Thread(name=self._getClientName(client_address), target=self.handleClient, args=(clientSocket, client_address, local_data))
             d.setDaemon(True)
             d.start()
-            # self.handleClient(clientSocket, client_address)
         self.shutdown(0,0)
 
     def _getClientName(self, cli_addr):
@@ -284,6 +290,85 @@ class Server:
             t.join()
         self.serverSocket.close()
         sys.exit(0)
+
+    def printout(self, type,request, address):
+        if "Block" in type or "Blacklist" in type:
+            colornum = 91
+        elif "Request" in type:
+            colornum = 92
+        elif "Reset" in type:
+            colornum = 93
+
+        print("\033[",colornum,"m",address[0],"\t",type,"\t",request,"\033[0m")
+
+
+    def proxy_thread(self, conn, client_addr):
+        """
+        *******************************************
+        ********* PROXY_THREAD FUNC ***************
+          A thread to handle request from browser
+        ********************************************
+        """
+
+        request = conn.recv(MAX_DATA_RECV)      # get the request from browser
+        first_line = request.split('\n')[0]     # parse the first line
+        url = first_line.split(' ')[1]          # get url
+        # print('URL:',url)
+
+        # Check if the host:port is blacklisted
+        for i in range(0,len(BLOCKED)):
+            if BLOCKED[i] in url:
+                self.printout("Blacklisted",first_line,client_addr)
+                conn.close()
+                sys.exit(1)
+
+
+        self.printout("Request",first_line,client_addr)
+
+        # find the webserver and port
+        http_pos = url.find("://")          # find pos of ://
+        if (http_pos==-1):
+            temp = url
+        else:
+            temp = url[(http_pos+3):]       # get the rest of url
+
+        port_pos = temp.find(":")           # find the port pos (if any)
+
+        # find end of web server
+        webserver_pos = temp.find("/")
+        if webserver_pos == -1:
+            webserver_pos = len(temp)
+
+        webserver = ""
+        port = -1
+        if (port_pos==-1 or webserver_pos < port_pos):      # default port
+            port = 80
+            webserver = temp[:webserver_pos]
+        else:                                               # specific port
+            port = int((temp[(port_pos+1):])[:webserver_pos-port_pos-1])
+            webserver = temp[:port_pos]
+
+        try:
+            # create a socket to connect to the web server
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((webserver, port))
+            s.send(request)                           # send request to webserver
+
+            while 1:
+                data = s.recv(MAX_DATA_RECV)          # receive dataprintout from web server
+                if (len(data) > 0):
+                    conn.send(data)                   # send to browser
+                else:
+                    break
+            s.close()
+            conn.close()
+        except socket.error, (value, message):
+            if s:
+                s.close()
+            if conn:
+                conn.close()
+            self.printout("Peer Reset",first_line,client_addr)
+            sys.exit(1)
 
 
 if __name__ == "__main__":

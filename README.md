@@ -30,6 +30,7 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Audio/Video/Image rendering
 - URL encoding/decoding
 - py2 and py3 support (partial support for py3 for now)
+- Can be used as a proxy server by just changing the server config file.  
 
 ### TODO
 - Tests for all the errors returned
@@ -39,4 +40,5 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Line 255  - server.py
 - Line 82 - server.py
 - Respect more headers
-- Convert this server to a proxy server, which can be toggled by the switch of a button. This requires a lot of work, but is doable.
+- Improve blacklisting in proxy-thread, by resolving the host and stuff.  
+- Close the pending sockets in the threads too, this sometimes results in the blocking of the main server thread.  
