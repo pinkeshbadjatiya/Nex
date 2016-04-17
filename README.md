@@ -1,5 +1,5 @@
 ## Nex
-A simple Multi-Threaded HTTP server in python using socket programming
+A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programming
 
 [![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
 
@@ -26,7 +26,7 @@ A simple Multi-Threaded HTTP server in python using socket programming
 - Client mapping with IPv4 address
 - Threading between clients and locks and complete private data(using local variables for each thread)
 - Tests written using nose2 and integrated in Travis-CI
-- Thread safe logging
+- Thread safe logging and colored logging.
 - Audio/Video/Image rendering
 - URL encoding/decoding
 - py2 and py3 support (partial support for py3 for now)
