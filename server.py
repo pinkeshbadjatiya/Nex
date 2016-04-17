@@ -29,7 +29,6 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 
-
 class Server:
     """ The server class """
 
@@ -308,6 +307,7 @@ class Server:
         self.serverSocket.close()
         sys.exit(0)
 
+
     def printout(self, type, request, address):
         colornum = "\033[96m"
         if "Block" in type or "Blacklist" in type:
@@ -316,7 +316,6 @@ class Server:
             colornum = "\033[92m"
         elif "Reset" in type:
             colornum = "\033[93m"
-        # print("\033[94mDDDD\t\033[0m")
         print(colornum, address[0],"\t",type,"\t",request,"\033[0m")
 
 
@@ -328,10 +327,9 @@ class Server:
         *******************************************
         """
 
-        request = conn.recv(self.config['MAX_REQUEST_LEN'])      # get the request from browser
-        first_line = request.split('\n')[0]     # parse the first line
-        url = first_line.split(' ')[1]          # get url
-        # print('URL:',url)
+        request = conn.recv(self.config['MAX_REQUEST_LEN'])   # get the request from browser
+        first_line = request.split('\n')[0]                   # parse the first line
+        url = first_line.split(' ')[1]                        # get url
 
         # Check if the host:port is blacklisted
         for i in range(0,len(self.config['BLACKLIST_DOMAINS'])):
@@ -339,10 +337,8 @@ class Server:
                 self.log("FAIL", client_addr, "BLACKLISTED: " + first_line)
                 conn.close()
                 return
-                # sys.exit(1)
 
-
-        self.printout("Request",first_line,client_addr)
+        self.log("WARNING", client_addr, "REQUEST: " + first_line)
 
         # find the webserver and port
         http_pos = url.find("://")          # find pos of ://
@@ -383,15 +379,13 @@ class Server:
             s.close()
             conn.close()
         except socket.error as error_msg:
-            # print('>>>>>>>>>>> ERROR:', error_msg)
             self.log("ERROR", client_addr, error_msg)
             if s:
                 s.close()
             if conn:
                 conn.close()
-            self.log("WARNING", client_addr, "Peer Reset.")
-            self.printout("Peer Reset", first_line, client_addr)
-            # sys.exit(1)
+            self.log("WARNING", client_addr, "Peer Reset: " + first_line)
+            # self.printout("Peer Reset", first_line, client_addr)
 
 
 if __name__ == "__main__":

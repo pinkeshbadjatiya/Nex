@@ -2,6 +2,7 @@
 A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programming
 
 [![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
+[![codecov.io](https://codecov.io/github/pinkeshbadjatiya/Nex/coverage.svg?branch=master&token=9bvQOagx9z)](https://codecov.io/github/pinkeshbadjatiya/Nex?branch=master)
 
 ### Instructions
 - `settings.conf` file contains all the settings related to the server. Change them as per your need before running the server

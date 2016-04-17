@@ -11,6 +11,9 @@ python:
 install:
   - pip install -r requirements.txt
 
+after_success:
+  - codecov
+
 # command to run tests
 script: nose2 --verbose
 

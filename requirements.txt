@@ -2,3 +2,4 @@ six
 nose2
 logging
 future
+codecov
