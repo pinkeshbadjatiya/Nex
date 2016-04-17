@@ -27,10 +27,6 @@ logging.basicConfig(level=logging.DEBUG,
                     format='[%(CurrentTime)-10s] (%(ThreadName)-10s) %(message)s',
                     )
 
-MAX_DATA_RECV = 999999  # max number of bytes we receive at once for proxy server
-BLOCKED = ['blocked.com']            # just an example. Remove with [""] for no blocking at all.
-
-
 class Server:
     """ The server class """
 
@@ -82,12 +78,12 @@ class Server:
         """
         try:
             self.log(client_address, 'Connection from: ' + str(client_address))
+            clientSocket.settimeout(self.config['CONNECTION_TIMEOUT'])
             local.data = clientSocket.recv(self.config['MAX_REQUEST_LEN'])
             if local.data == "":  # Ignore the blank requests
                 return
             self.log(client_address, 'Sending data back to the client')
             clientSocket.sendall(self.createResponse(self.parseRequest(client_address, local.data)))
-            clientSocket.close()
         finally:
             clientSocket.close()         # Clean up the connection
 
@@ -305,19 +301,19 @@ class Server:
     def proxy_thread(self, conn, client_addr):
         """
         *******************************************
-        ********* PROXY_THREAD FUNC ***************
+        *********** PROXY_THREAD FUNC *************
           A thread to handle request from browser
-        ********************************************
+        *******************************************
         """
 
-        request = conn.recv(MAX_DATA_RECV)      # get the request from browser
+        request = conn.recv(self.config['MAX_REQUEST_LEN'])      # get the request from browser
         first_line = request.split('\n')[0]     # parse the first line
         url = first_line.split(' ')[1]          # get url
         # print('URL:',url)
 
         # Check if the host:port is blacklisted
-        for i in range(0,len(BLOCKED)):
-            if BLOCKED[i] in url:
+        for i in range(0,len(self.config['BLACKLIST_DOMAINS'])):
+            if self.config['BLACKLIST_DOMAINS'][i] in url:
                 self.printout("Blacklisted",first_line,client_addr)
                 conn.close()
                 sys.exit(1)
@@ -351,18 +347,20 @@ class Server:
         try:
             # create a socket to connect to the web server
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(self.config['CONNECTION_TIMEOUT'])
             s.connect((webserver, port))
-            s.send(request)                           # send request to webserver
+            s.sendall(request)                           # send request to webserver
 
             while 1:
-                data = s.recv(MAX_DATA_RECV)          # receive dataprintout from web server
+                data = s.recv(self.config['MAX_REQUEST_LEN'])          # receive dataprintout from web server
                 if (len(data) > 0):
                     conn.send(data)                   # send to browser
                 else:
                     break
             s.close()
             conn.close()
-        except socket.error, (value, message):
+        except socket.error as error_msg:
+            print('>>>>>>>>>>> ERROR:', error_msg)
             if s:
                 s.close()
             if conn:
