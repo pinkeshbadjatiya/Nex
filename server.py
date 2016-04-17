@@ -21,11 +21,14 @@ import urllib
 import binascii
 from io import StringIO
 
+import ColorizePython
 from utils import *
 
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(CurrentTime)-10s] (%(ThreadName)-10s) %(message)s',
                     )
+
+
 
 class Server:
     """ The server class """
@@ -45,10 +48,10 @@ class Server:
         """ Wait for clients to connect """
         local_data = threading.local()
         while True:
-            self.log(-1, 'Ready to serve...')
+            self.log("SUCCESS", -1, 'Ready to serve...')
             (clientSocket, client_address) = self.serverSocket.accept()   # Establish the connection
             if self.config['PROXY_SERVER'].lower() == "true":
-                d = threading.Thread(name='(P)'+self._getClientName(client_address), target=self.proxy_thread, args=(clientSocket, client_address))
+                d = threading.Thread(name=self._getClientName(client_address), target=self.proxy_thread, args=(clientSocket, client_address))
             else:
                 d = threading.Thread(name=self._getClientName(client_address), target=self.handleClient, args=(clientSocket, client_address, local_data))
             d.setDaemon(True)
@@ -77,12 +80,12 @@ class Server:
         Use "local" as prefix for all the temporary variables. These are thread safe.
         """
         try:
-            self.log(client_address, 'Connection from: ' + str(client_address))
+            self.log("NORMAL", client_address, 'Connection from: ' + str(client_address))
             clientSocket.settimeout(self.config['CONNECTION_TIMEOUT'])
             local.data = clientSocket.recv(self.config['MAX_REQUEST_LEN'])
             if local.data == "":  # Ignore the blank requests
                 return
-            self.log(client_address, 'Sending data back to the client')
+            self.log("NORMAL", client_address, 'Sending data back to the client')
             clientSocket.sendall(self.createResponse(self.parseRequest(client_address, local.data)))
         finally:
             clientSocket.close()         # Clean up the connection
@@ -163,7 +166,7 @@ class Server:
         # print request.headers.keys()   # ['accept-charset', 'host', 'accept']
         # print request.headers['host']  # "cm.bell-labs.com"
 
-        self.log(client_address, path)
+        self.log("NORMAL", client_address, path)
         filepath = self.config['PUBLIC_HTML'] + path
 
         # For both directory and files, check if path exists
@@ -262,40 +265,59 @@ class Server:
         return path.split(self.config['PUBLIC_HTML'])[-1]
 
 
-    def log(self, client, msg):
+    def log(self, log_level, client, msg):
         """ Log the messages to appropriate place """
         LoggerDict = {
             'CurrentTime' : strftime("%a, %d %b %Y %X", localtime()),
             'ThreadName' : threading.currentThread().getName()
         }
         if client == -1:       # Main Thread
-            logging.debug('%s', msg, extra=LoggerDict)
+            formatedMSG = msg
         else:                  # Child threads or Request Threads
-            logging.debug('%s:%s %s', client[0], client[1], msg, extra=LoggerDict)
+            formatedMSG = '{0}:{1} {2}'.format(client[0], client[1], msg)
+        logging.debug('%s', self.colorizeLog(self.config['COLORED_LOGGING'], log_level, formatedMSG), extra=LoggerDict)
+
+
+    def colorizeLog(self, shouldColorize, log_level, msg):
+        ## Higher is the log_level in the log() argument, the lower is its priority.
+        colorize_log = {
+            "NORMAL": ColorizePython.pycolors.ENDC,
+            "WARNING": ColorizePython.pycolors.WARNING,
+            "SUCCESS": ColorizePython.pycolors.OKGREEN,
+            "FAIL": ColorizePython.pycolors.FAIL,
+            "RESET": ColorizePython.pycolors.ENDC
+        }
+
+        if shouldColorize.lower() == "true":
+            if log_level in colorize_log:
+                return colorize_log[str(log_level)] + msg + colorize_log['RESET']
+            return colorize_log["NORMAL"] + msg + colorize_log["RESET"]
+        return msg
 
 
     def shutdown(self, signum, frame):
         """ Handle the exiting server. Clean all traces """
 
-        self.log(-1, 'Shutting down gracefully...')
+        self.log("WARNING", -1, 'Shutting down gracefully...')
         main_thread = threading.currentThread()        # Wait for all clients to exit
         for t in threading.enumerate():
             if t is main_thread:
                 continue
-            self.log(-1, 'joining ' + t.getName())
+            self.log("FAIL", -1, 'joining ' + t.getName())
             t.join()
         self.serverSocket.close()
         sys.exit(0)
 
-    def printout(self, type,request, address):
+    def printout(self, type, request, address):
+        colornum = "\033[96m"
         if "Block" in type or "Blacklist" in type:
-            colornum = 91
+            colornum = "\033[91m"
         elif "Request" in type:
-            colornum = 92
+            colornum = "\033[92m"
         elif "Reset" in type:
-            colornum = 93
-
-        print("\033[",colornum,"m",address[0],"\t",type,"\t",request,"\033[0m")
+            colornum = "\033[93m"
+        # print("\033[94mDDDD\t\033[0m")
+        print(colornum, address[0],"\t",type,"\t",request,"\033[0m")
 
 
     def proxy_thread(self, conn, client_addr):
@@ -314,9 +336,10 @@ class Server:
         # Check if the host:port is blacklisted
         for i in range(0,len(self.config['BLACKLIST_DOMAINS'])):
             if self.config['BLACKLIST_DOMAINS'][i] in url:
-                self.printout("Blacklisted",first_line,client_addr)
+                self.log("FAIL", client_addr, "BLACKLISTED: " + first_line)
                 conn.close()
-                sys.exit(1)
+                return
+                # sys.exit(1)
 
 
         self.printout("Request",first_line,client_addr)
@@ -360,13 +383,15 @@ class Server:
             s.close()
             conn.close()
         except socket.error as error_msg:
-            print('>>>>>>>>>>> ERROR:', error_msg)
+            # print('>>>>>>>>>>> ERROR:', error_msg)
+            self.log("ERROR", client_addr, error_msg)
             if s:
                 s.close()
             if conn:
                 conn.close()
-            self.printout("Peer Reset",first_line,client_addr)
-            sys.exit(1)
+            self.log("WARNING", client_addr, "Peer Reset.")
+            self.printout("Peer Reset", first_line, client_addr)
+            # sys.exit(1)
 
 
 if __name__ == "__main__":
