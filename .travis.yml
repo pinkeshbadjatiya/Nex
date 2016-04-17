@@ -7,20 +7,14 @@ python:
   # - "3.3"
   # - "3.4"
 
-env:
-  - CODECOV_TOKEN=0f1bc985-529d-4efa-b84b-de45d1810971
-
 # command to install dependencies
 install:
   - pip install -r requirements.txt
 
 # command to run tests
 script:
-  - nose2 --verbose
-  - coverage run tests.py
+  - nose2 --verbose --with-coverage
 
-after_success:
-  - codecov
 
 notifications:
     email:
