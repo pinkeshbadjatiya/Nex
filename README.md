@@ -58,3 +58,8 @@ A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programm
 - Respect more headers
 - Improve blacklisting in proxy-thread, by resolving the host and stuff.  
 - Close the pending sockets in the threads too, this sometimes results in the blocking of the main server thread.(http://voorloopnul.com/blog/a-python-proxy-in-less-than-100-lines-of-code/)  
+- Use the argument parsing using `argparse`.  
+
+### Contribute  
+- I have mentioned a lot of TODO's above, just send a PR.  
+- Any other bug fix or update is also appreciated.  
