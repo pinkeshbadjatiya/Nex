@@ -1,5 +1,5 @@
 ## Nex
-A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programming
+A mini Multi-Threaded ProxyServer + HTTPserver in python using socket programming
 
 [![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
 
@@ -12,7 +12,6 @@ A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programm
 - `other_templates` contains other templates used for rendering by the Nex server.
 
 ### Notes
-- Do not add trailing '/' in PUBLIC_HTML and ERROR_DIR or any other directory in settings.conf
 - All the essential directories must be present in the appropriate location as mentioned in the configuration file.
 
 ### Features Supported
@@ -31,6 +30,7 @@ A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programm
 - URL encoding/decoding
 - py2 and py3 support (partial support for py3 for now)
 - Can be used as a proxy server by just changing the server config file.  
+- All the directories can be relative as well as absolute in settings.conf
 
 ## settings.config
 - `MAX_REQUEST_LEN` - Max number of bytes we receive at once for proxy server.    
@@ -49,12 +49,14 @@ A simple Multi-Threaded ProxyServer + HTTPserver in python using socket programm
 - `STATUS_STRING` : {
 
 ### TODO
+- Do not read the whole file in memory. Read in chunks and send. Systems crashes when big files are accessed.
+- Unicode error while parsing `__P` folder
+- Update tests based on the new config file.
 - Tests for all the errors returned
+- Allow ranged sending of file that supports seeking of video.
 - Checking the presence of all the configuration/essential directories before forking the server thread.
 - Separate error pages from actual functions and break the flow if error to respond error funcs.
 - Split server class into multiple ones.(PEP8)
-- Line 255  - server.py
-- Line 82 - server.py
 - Respect more headers
 - Improve blacklisting in proxy-thread, by resolving the host and stuff.  
 - Close the pending sockets in the threads too, this sometimes results in the blocking of the main server thread.(http://voorloopnul.com/blog/a-python-proxy-in-less-than-100-lines-of-code/)  

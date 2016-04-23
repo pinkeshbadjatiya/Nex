@@ -12,7 +12,6 @@ import json
 import fnmatch
 import os
 import errno
-import mimetypes
 from time import gmtime, strftime, localtime
 from datetime import datetime
 import threading
@@ -21,8 +20,7 @@ import urllib
 import binascii
 from io import StringIO
 
-import ColorizePython
-from utils import *
+import utils
 
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(CurrentTime)-10s] (%(ThreadName)-10s) %(message)s',
@@ -57,6 +55,7 @@ class Server:
             d.start()
         self.shutdown(0,0)
 
+
     def _getClientName(self, cli_addr):
         """ Return the clientName with appropriate number.
         If already an old client then get the no from map, else
@@ -74,6 +73,7 @@ class Server:
         lock.release()
         return "Client-" + str(self.__clients[ClientAddr])
 
+
     def handleClient(self, clientSocket, client_address, local):
         """ Manage the client which got connected. Has to be done parallely.
         Use "local" as prefix for all the temporary variables. These are thread safe.
@@ -88,7 +88,6 @@ class Server:
             clientSocket.sendall(self.createResponse(self.parseRequest(client_address, local.data)))
         finally:
             clientSocket.close()         # Clean up the connection
-
 
 
     def createResponse(self, content, response_code=200, mimetype='text/html', encoding='UTF-8', additional_params=None):#, last_modified=0):
@@ -134,7 +133,8 @@ class Server:
         """ Parses the request and returns the error code and body content.
             Returns     => content, response_code
         """
-        request = HTTPRequest(data)
+        print(data)
+        request = utils.HTTPRequest(data)
         request.path = url=urllib.unquote(request.path).decode('utf8')
 
         if request.error_code != None:
@@ -166,18 +166,18 @@ class Server:
         # print request.headers['host']  # "cm.bell-labs.com"
 
         self.log("NORMAL", client_address, path)
-        filepath = self.config['PUBLIC_HTML'] + path
+        filepath = os.path.normpath(self.config['PUBLIC_HTML'] + path)   # Normalize path
 
         # For both directory and files, check if path exists
-        if not os.path.exists(filepath):
+        if not utils.isvalidPath(filepath):
             return self._readFile(self.config['ERROR_DIR'] + '/' + str(404) + ".html"), 404
 
         # Check if read permission
-        if not (os.access(filepath, os.R_OK) and filepath.startswith(self.config['PUBLIC_HTML'])):
+        if not utils.isReadable(filepath):
             return self._readFile(self.config['ERROR_DIR'] + '/' + str(403) + ".html"), 403
 
         # Check if directory but path exists
-        if not os.path.isfile(filepath):
+        if utils.isvalidDirectory(filepath):
             return self._handleDirectory(filepath)
 
         # File exists and read permission, so give file
@@ -191,15 +191,13 @@ class Server:
         else:
             with fp:
                 # >> return data, 200, mimetype
-                return fp.read(), 200, self._guessMIME(filepath)
+                return fp.read(), 200, utils.guessMIME(filepath)
 
 
     def _handleDirectory(self, dirname):
         """ Create a HTML page using template injection and render a tablular view of the directory. """
 
         entry = "<tr><td>[{{-EXTENSION-}}]</td><td><a href='{{-HREF-}}'>{{-FILE_NAME-}}</a></td><td align='right'>{{-DATE_MODIFIED-}}</td><td align='right'>{{-FILE_SIZE-}}</td></tr>"
-
-        dirname = dirname.strip("/")      # Remove trailiing/ending back-slashes...
 
         all_entries = ""
         template = self._readFile(self.config['OTHER_TEMPLATES'] + '/' + "dir.html")
@@ -213,12 +211,12 @@ class Server:
             }
 
             # if the "ent" is a file
-            if os.path.isfile(dirname + "/" + ent):
+            if utils.isvalidFile(dirname + "/" + ent):
                 if len(ent.split('.')) > 1:
                     variables['EXTENSION'] = ent.split('.')[-1]
                 else:
                     variables['EXTENSION'] = "---"
-                variables['FILE_SIZE'] = sizeof_fmt(os.stat(dirname + "/" + ent).st_size)
+                variables['FILE_SIZE'] = utils.sizeof_fmt(os.stat(dirname + "/" + ent).st_size)
 
             all_entries += self._inject_variables(entry, variables)
 
@@ -231,7 +229,7 @@ class Server:
         if dicto['BACK_HREF'] == "":
             dicto['BACK_HREF'] = "/"
 
-        return self._inject_variables(template, dicto), 200
+        return self._inject_variables(template, dicto).encode('utf-8'), 200
 
 
     def _inject_variables(self, template, var_dict):
@@ -244,7 +242,7 @@ class Server:
     def _readFile(self, filename):
         # File exists and read permission
         try:
-            fp = open(filename)
+            fp = open(filename, newline='')
         except IOError as e:
             if e.errno == errno.EACCES:
                 return self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html")
@@ -253,10 +251,6 @@ class Server:
         else:
             with fp:
                 return fp.read()     # return (data, mimetype)
-
-
-    def _guessMIME(self, filename):
-        return mimetypes.guess_type(filename)[0]
 
 
     def _toHREF(self, path):
@@ -274,24 +268,7 @@ class Server:
             formatedMSG = msg
         else:                  # Child threads or Request Threads
             formatedMSG = '{0}:{1} {2}'.format(client[0], client[1], msg)
-        logging.debug('%s', self.colorizeLog(self.config['COLORED_LOGGING'], log_level, formatedMSG), extra=LoggerDict)
-
-
-    def colorizeLog(self, shouldColorize, log_level, msg):
-        ## Higher is the log_level in the log() argument, the lower is its priority.
-        colorize_log = {
-            "NORMAL": ColorizePython.pycolors.ENDC,
-            "WARNING": ColorizePython.pycolors.WARNING,
-            "SUCCESS": ColorizePython.pycolors.OKGREEN,
-            "FAIL": ColorizePython.pycolors.FAIL,
-            "RESET": ColorizePython.pycolors.ENDC
-        }
-
-        if shouldColorize.lower() == "true":
-            if log_level in colorize_log:
-                return colorize_log[str(log_level)] + msg + colorize_log['RESET']
-            return colorize_log["NORMAL"] + msg + colorize_log["RESET"]
-        return msg
+        logging.debug('%s', utils.colorizeLog(self.config['COLORED_LOGGING'], log_level, formatedMSG), extra=LoggerDict)
 
 
     def shutdown(self, signum, frame):
@@ -385,10 +362,9 @@ class Server:
             if conn:
                 conn.close()
             self.log("WARNING", client_addr, "Peer Reset: " + first_line)
-            # self.printout("Peer Reset", first_line, client_addr)
 
 
 if __name__ == "__main__":
-    config = loadConfig('settings.conf')
+    config = utils.loadConfig('settings.conf')
     server = Server(config)
     server.listenForClient()
