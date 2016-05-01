@@ -41,16 +41,15 @@ A mini Multi-Threaded ProxyServer + HTTPserver in python using socket programmin
 - `PROXY_SERVER` - If true then the server acts as a proxy server. Else like a normal http-webserver. (Default: "true"),
 - `MAX_CLIENT_BACKLOG` - Max no of client requests that can be queued. (Default: 50),
 - `MAX_REQUEST_LEN` : Max no of bytes that can be received by the server in a single request. (Default: 999999),
-- `HOST_ALLOWED` : [ "*" ],
-- `BLACKLIST_DOMAINS` : [ "blocked.com" ],
-- `PUBLIC_HTML` : "./public_html",
-- `ERROR_DIR` : "./error_pages",
-- `OTHER_TEMPLATES` : "./other_templates",
-- `STATUS_STRING` : {
+- `HOST_ALLOWED` : [ '*' ]
+- `BLACKLIST_DOMAINS` : [ "blocked.com" ]
+- `PUBLIC_HTML` : "./public_html"
+- `ERROR_DIR` : "./error_pages"
+- `OTHER_TEMPLATES` : "./other_templates"
+- `STATUS_STRING` : Contains all the status codes with their status strings.
 
 ### TODO
 - Do not read the whole file in memory. Read in chunks and send. Systems crashes when big files are accessed.
-- Unicode error while parsing `__P` folder
 - Update tests based on the new config file.
 - Tests for all the errors returned
 - Allow ranged sending of file that supports seeking of video.
@@ -58,9 +57,9 @@ A mini Multi-Threaded ProxyServer + HTTPserver in python using socket programmin
 - Separate error pages from actual functions and break the flow if error to respond error funcs.
 - Split server class into multiple ones.(PEP8)
 - Respect more headers
-- Improve blacklisting in proxy-thread, by resolving the host and stuff.  
 - Close the pending sockets in the threads too, this sometimes results in the blocking of the main server thread.(http://voorloopnul.com/blog/a-python-proxy-in-less-than-100-lines-of-code/)  
 - Use the argument parsing using `argparse`.  
+- Check why do we get blank requests.  
 
 ### Contribute  
 - I have mentioned a lot of TODO's above, just send a PR.  
