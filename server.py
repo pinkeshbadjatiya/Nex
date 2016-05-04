@@ -111,8 +111,37 @@ class Server:
             Fsize = os.stat(Fname).st_size
             startInd = 0
 
+            ###########################################################
+            # Sending file in one go.
+            ###########################################################
+            try:
+                fp = open(Fname, "rb")
+            except IOError as e:
+                if e.errno == errno.EACCES:
+                    return {
+                                'ERROR' : {
+                                    'filename' : self.config['ERROR_DIR'] + '/' + str(500) + ".html",
+                                    'error_code' : 500
+                                }
+                            }
+                # Not a permission error.
+                raise
+            else:
+                with fp:
+                    # >> return data, 200, mimetype
+                    filecontent = fp.read()
+                response = self.createResponse(filecontent, 200, utils.guessMIME(Fname))
+                clientSocket.sendall(response)
+
+            ###########################################################
+            # Sending file in chunks.
+            ###########################################################
+            #
+            # while startInd <= Fsize:
+            #     endInd = min(startInd + 1024, Fsize-1)
             #     try:
             #         fp = open(Fname, "rb")
+            #         fp.seek(startInd)
             #     except IOError as e:
             #         if e.errno == errno.EACCES:
             #             return {
@@ -126,38 +155,16 @@ class Server:
             #     else:
             #         with fp:
             #             # >> return data, 200, mimetype
-            #             filecontent = fp.read()
-            #         response = self.createResponse(filecontent, 200, utils.guessMIME(Fname))
+            #             filecontent = fp.read(endInd - startInd)
+            #         addHeader = {
+            #             'Accept-Ranges' : 'bytes',
+            #             'Content-Range' : 'bytes ' + str(startInd) + '-' + str(endInd) + '/' + str(Fsize)
+            #             # 'Content-Length' : Fsize
+            #         }
+            #         response = self.createResponse(filecontent, 206, utils.guessMIME(Fname), 'UTF-8', addHeader)
+            #         # response = self.createResponse(filecontent, 200, utils.guessMIME(Fname))
             #         clientSocket.sendall(response)
-
-            while startInd <= Fsize:
-                endInd = min(startInd + 1024, Fsize-1)
-                try:
-                    fp = open(Fname, "rb")
-                    fp.seek(startInd)
-                except IOError as e:
-                    if e.errno == errno.EACCES:
-                        return {
-                                    'ERROR' : {
-                                        'filename' : self.config['ERROR_DIR'] + '/' + str(500) + ".html",
-                                        'error_code' : 500
-                                    }
-                                }
-                    # Not a permission error.
-                    raise
-                else:
-                    with fp:
-                        # >> return data, 200, mimetype
-                        filecontent = fp.read(endInd - startInd)
-                    addHeader = {
-                        'Accept-Ranges' : 'bytes',
-                        'Content-Range' : 'bytes ' + str(startInd) + '-' + str(endInd) + '/' + str(Fsize)
-                        # 'Content-Length' : Fsize
-                    }
-                    response = self.createResponse(filecontent, 206, utils.guessMIME(Fname), 'UTF-8', addHeader)
-                    # response = self.createResponse(filecontent, 200, utils.guessMIME(Fname))
-                    clientSocket.sendall(response)
-                startInd = endInd + 1
+            #     startInd = endInd + 1
 
 
     def createResponse(self, content, response_code=200, mimetype='text/html', encoding='UTF-8', additional_params={}):
