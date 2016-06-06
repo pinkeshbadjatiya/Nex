@@ -3,3 +3,4 @@ nose2
 logging
 future
 cov-core
+python-coveralls

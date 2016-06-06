@@ -1,4 +1,6 @@
 language: python
+repo_token: bPD4wxdac2uDsd1IQOTSJFs6gFkvqFGuG
+service_name: travis-ci
 
 python:
   - "2.6"
@@ -15,6 +17,8 @@ install:
 script:
   - nose2 --verbose --with-coverage
 
+after_success:
+  - coveralls
 
 notifications:
     email:
