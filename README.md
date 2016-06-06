@@ -2,7 +2,7 @@
 A mini Multi-Threaded ProxyServer + HTTPserver in python using socket programming
 
 [![Build Status](https://travis-ci.org/pinkeshbadjatiya/Nex.svg?branch=master)](https://travis-ci.org/pinkeshbadjatiya/Nex)
-[![Coverage Status](https://coveralls.io/repos/github/pinkeshbadjatiya/Nex/badge.svg?branch=master)](https://coveralls.io/github/pinkeshbadjatiya/Nex?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/pinkeshbadjatiya/Nex/badge.svg?branch=master&bust=1)](https://coveralls.io/github/pinkeshbadjatiya/Nex?branch=master)
 
 ### Instructions
 - `settings.conf` file contains all the settings related to the server. Change them as per your need before running the server
