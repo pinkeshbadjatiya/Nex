@@ -1,7 +1,7 @@
 ## Nex
 A mini Multi-Threaded ProxyServer + HTTPserver in python using socket programming
 
-[![Build Status](https://travis-ci.com/pinkeshbadjatiya/Nex.svg?token=qJ4qdp1jw54BTny2oTYq&branch=master)](https://travis-ci.com/pinkeshbadjatiya/Nex)
+[![Build Status](https://travis-ci.org/pinkeshbadjatiya/Nex.svg?branch=master)](https://travis-ci.org/pinkeshbadjatiya/Nex)
 [![Coverage Status](https://coveralls.io/repos/github/pinkeshbadjatiya/Nex/badge.svg?branch=master)](https://coveralls.io/github/pinkeshbadjatiya/Nex?branch=master)
 
 ### Instructions
