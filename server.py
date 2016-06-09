@@ -35,11 +35,10 @@ class Server:
         self.config = config                                         # Save config in server
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)             # Create a TCP socket
         self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # Re-use the socket
-        self.serverSocket.bind((self.config['HOST_NAME'], self.config['BIND_PORT'])) # bind the socket to a public host, and a port
+        self.serverSocket.bind((self.config['HOST_NAME'], self.config['BIND_PORT']))  # bind the socket to a public host, and a port
         self.serverSocket.listen(self.config['MAX_CLIENT_BACKLOG'])    # become a server socket
         self.__clients = {}
         self.__client_no = 1
-
 
     def listenForClient(self):
         """ Wait for clients to connect """
@@ -53,8 +52,7 @@ class Server:
                 d = threading.Thread(name=self._getClientName(client_address), target=self.handleClient, args=(clientSocket, client_address, local_data))
             d.setDaemon(True)
             d.start()
-        self.shutdown(0,0)
-
+        self.shutdown(0, 0)
 
     def _getClientName(self, cli_addr):
         """ Return the clientName with appropriate number.
@@ -72,7 +70,6 @@ class Server:
         self.__client_no += 1
         lock.release()
         return "Client-" + str(self.__clients[ClientAddr])
-
 
     def handleClient(self, clientSocket, client_address, local):
         """ Manage the client which got connected. Has to be done parallely.
@@ -92,9 +89,7 @@ class Server:
         finally:
             clientSocket.close()         # Clean up the connection
 
-
     def _sendResponse(self, data, clientSocket):
-
         response = ""   # To be sent
         if 'ERROR' in data:
             if 'filename' in data['ERROR']:
@@ -119,9 +114,9 @@ class Server:
             except IOError as e:
                 if e.errno == errno.EACCES:
                     return {
-                                'ERROR' : {
-                                    'filename' : self.config['ERROR_DIR'] + '/' + str(500) + ".html",
-                                    'error_code' : 500
+                                'ERROR': {
+                                    'filename': self.config['ERROR_DIR'] + '/' + str(500) + ".html",
+                                    'error_code': 500
                                 }
                             }
                 # Not a permission error.
@@ -166,9 +161,8 @@ class Server:
             #         clientSocket.sendall(response)
             #     startInd = endInd + 1
 
-
     def createResponse(self, content, response_code=200, mimetype='text/html', encoding='UTF-8', additional_params={}):
-        #, last_modified=0):
+        # last_modified=0):
         """
             Create the response from the STATUS_CODE, DATA and MIMETYPE received.
             Receives    => (content, 200, text/html, UTF-8, additionalParamsDict)
@@ -176,11 +170,11 @@ class Server:
         """
 
         header_params = {
-            'Content-Type': '%s; charset=%s' %(mimetype, encoding) if encoding else mimetype,
+            'Content-Type': '%s; charset=%s' % (mimetype, encoding) if encoding else mimetype,
             'Date': strftime("%a, %d %b %Y %X GMT", gmtime()),
             'Server': self.config['SERVER_NAME'],
             # 'Connection': 'close',
-            'Connection' : 'close',  # signal that the conection wil be closed after completing the request
+            'Connection': 'close',  # signal that the conection wil be closed after completing the request
             'Content-Length': len(content),
             # 'Keep-Alive': 'timeout=5, max=100',
             # 'Etag': "ae7b5b-52dca51ae0420"',
@@ -199,11 +193,9 @@ class Server:
         )
         return header.encode('utf8') + content
 
-
-    def processError(self, dict):
-        self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"), 500
-        pass
-
+    # def processError(self, dict):
+    #     self._readFile(self.config['ERROR_DIR'] + '/' + str(500) + ".html"), 500
+    #     pass
 
     def _parseRequest(self, client_address, data):
         """ Parses the request and returns the error code and body content.
@@ -211,20 +203,20 @@ class Server:
         """
         # print(data)
         request = utils.HTTPRequest(data)
-        request.path = url=urllib.unquote(request.path).decode('utf8')
+        request.path = url = urllib.unquote(request.path).decode('utf8')
 
-        if request.error_code != None:
+        if request.error_code is not None:
             return {
-                        'ERROR' : {
-                            'msg' : request.error_message,
-                            'error_code' : request.error_code
+                        'ERROR': {
+                            'msg': request.error_message,
+                            'error_code': request.error_code
                         }
                     }
         if not self._ishostAllowed(request.headers['host']):
             return {
-                        'ERROR' : {
-                            'filename' : self.config['ERROR_DIR'] + '/' + str(403) + ".html",
-                            'error_code' : 403
+                        'ERROR': {
+                            'filename': self.config['ERROR_DIR'] + '/' + str(403) + ".html",
+                            'error_code': 403
                         }
                     }
 
@@ -232,12 +224,11 @@ class Server:
             return self._handleGET(client_address, request.path)
         else:
             return {
-                        'ERROR' : {
-                            'filename' : self.config['ERROR_DIR'] + '/' + str(500) + ".html",
-                            'error_code' : 500
+                        'ERROR': {
+                            'filename': self.config['ERROR_DIR'] + '/' + str(500) + ".html",
+                            'error_code': 500
                         }
                     }
-
 
     def _ishostAllowed(self, host):
         """ Check if host is allowed to access the content """
@@ -245,7 +236,6 @@ class Server:
             if fnmatch.fnmatch(host, wildcard):
                 return True
         return False
-
 
     def _handleGET(self, client_address, path):
         """ Process the GET request of the client """
@@ -262,18 +252,18 @@ class Server:
         # For both directory and files, check if path exists
         if not utils.isvalidPath(filepath):
             return {
-                        'ERROR' : {
-                            'filename' : self.config['ERROR_DIR'] + '/' + str(404) + ".html",
-                            'error_code' : 404
+                        'ERROR': {
+                            'filename': self.config['ERROR_DIR'] + '/' + str(404) + ".html",
+                            'error_code': 404
                         }
                     }
 
         # Check if read permission
         if not utils.isReadable(filepath):
             return {
-                        'ERROR' : {
-                            'filename' : self.config['ERROR_DIR'] + '/' + str(403) + ".html",
-                            'error_code' : 403
+                        'ERROR': {
+                            'filename': self.config['ERROR_DIR'] + '/' + str(403) + ".html",
+                            'error_code': 403
                         }
                     }
 
@@ -283,12 +273,10 @@ class Server:
 
         # All checking done, return the file to be read
         return {
-                    "CONTENT" : {
-                        "filename" : filepath
+                    "CONTENT": {
+                        "filename": filepath
                     }
                 }
-
-
 
     def _handleDirectory(self, dirname):
         """ Create a HTML page using template injection and render a tablular view of the directory. """
@@ -299,11 +287,11 @@ class Server:
         template = self._readFile(self.config['OTHER_TEMPLATES'] + '/' + "dir.html")
         for ent in os.listdir(dirname):
             variables = {
-                'EXTENSION' : "DIR",
-                'HREF' : self._toHREF(dirname + "/" + ent),
-                'FILE_NAME' : ent,
-                'DATE_MODIFIED' : datetime.fromtimestamp(os.stat(dirname + "/" + ent).st_mtime).strftime("%A %d, %B %Y, %H:%M:%S"),
-                'FILE_SIZE' : "-"
+                'EXTENSION': "DIR",
+                'HREF': self._toHREF(dirname + "/" + ent),
+                'FILE_NAME': ent,
+                'DATE_MODIFIED': datetime.fromtimestamp(os.stat(dirname + "/" + ent).st_mtime).strftime("%A %d, %B %Y, %H:%M:%S"),
+                'FILE_SIZE': "-"
             }
 
             # if the "ent" is a file
@@ -317,28 +305,26 @@ class Server:
             all_entries += self._inject_variables(entry, variables)
 
         dicto = {
-            'ENTRIES' : all_entries,
-            'SERVER_DETAILS' : self.config['SERVER_SHORT_NAME']  + " Server at " + self.config['HOST_NAME'] + " Port " + str(self.config['BIND_PORT']),
-            'PATH' : self._toHREF(dirname) + "/",
-            'BACK_HREF' : "/".join((self._toHREF(dirname) + "/").split('/')[:-2])
+            'ENTRIES': all_entries,
+            'SERVER_DETAILS': self.config['SERVER_SHORT_NAME'] + " Server at " + self.config['HOST_NAME'] + " Port " + str(self.config['BIND_PORT']),
+            'PATH': self._toHREF(dirname) + "/",
+            'BACK_HREF': "/".join((self._toHREF(dirname) + "/").split('/')[:-2])
         }
         if dicto['BACK_HREF'] == "":
             dicto['BACK_HREF'] = "/"
 
         return {
-            'DIRECTORY' : {
-                'directory' : self._inject_variables(template, dicto).encode('utf-8'),
-                'status_code' : 200
+            'DIRECTORY': {
+                'directory': self._inject_variables(template, dicto).encode('utf-8'),
+                'status_code': 200
             }
         }
-
 
     def _inject_variables(self, template, var_dict):
         """ Used to inject variables in the template """
         for key in var_dict:
             template = template.replace("{{-" + key + "-}}", var_dict[key])
         return template
-
 
     def _readFile(self, filename):
         # File exists and read permission
@@ -353,24 +339,21 @@ class Server:
             with fp:
                 return fp.read()     # return (data, mimetype)
 
-
     def _toHREF(self, path):
         """ Return relative path (from public_html) from absolute path """
         return path.split(self.config['PUBLIC_HTML'])[-1]
 
-
     def log(self, log_level, client, msg):
         """ Log the messages to appropriate place """
         LoggerDict = {
-            'CurrentTime' : strftime("%a, %d %b %Y %X", localtime()),
-            'ThreadName' : threading.currentThread().getName()
+            'CurrentTime': strftime("%a, %d %b %Y %X", localtime()),
+            'ThreadName': threading.currentThread().getName()
         }
         if client == -1:       # Main Thread
             formatedMSG = msg
         else:                  # Child threads or Request Threads
             formatedMSG = '{0}:{1} {2}'.format(client[0], client[1], msg)
         logging.debug('%s', utils.colorizeLog(self.config['COLORED_LOGGING'], log_level, formatedMSG), extra=LoggerDict)
-
 
     def shutdown(self, signum, frame):
         """ Handle the exiting server. Clean all traces """
@@ -385,7 +368,6 @@ class Server:
         self.serverSocket.close()
         sys.exit(0)
 
-
     def printout(self, type, request, address):
         colornum = "\033[96m"
         if "Block" in type or "Blacklist" in type:
@@ -394,8 +376,7 @@ class Server:
             colornum = "\033[92m"
         elif "Reset" in type:
             colornum = "\033[93m"
-        print(colornum, address[0],"\t",type,"\t",request,"\033[0m")
-
+        print(colornum, address[0], "\t", type, "\t", request, "\033[0m")
 
     def proxy_thread(self, conn, client_addr):
         """
@@ -410,7 +391,7 @@ class Server:
         url = first_line.split(' ')[1]                        # get url
 
         # Check if the host:port is blacklisted
-        for i in range(0,len(self.config['BLACKLIST_DOMAINS'])):
+        for i in range(0, len(self.config['BLACKLIST_DOMAINS'])):
             if self.config['BLACKLIST_DOMAINS'][i] in url:
                 self.log("FAIL", client_addr, "BLACKLISTED: " + first_line)
                 conn.close()
@@ -420,7 +401,7 @@ class Server:
 
         # find the webserver and port
         http_pos = url.find("://")          # find pos of ://
-        if (http_pos==-1):
+        if http_pos == -1:
             temp = url
         else:
             temp = url[(http_pos+3):]       # get the rest of url
@@ -434,27 +415,28 @@ class Server:
 
         webserver = ""
         port = -1
-        if (port_pos==-1 or webserver_pos < port_pos):      # default port
+        if port_pos == -1 or webserver_pos < port_pos:      # default port
             port = 80
             webserver = temp[:webserver_pos]
         else:                                               # specific port
             port = int((temp[(port_pos+1):])[:webserver_pos-port_pos-1])
             webserver = temp[:port_pos]
 
+        # print(request)
         try:
             # create a socket to connect to the web server
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(self.config['CONNECTION_TIMEOUT'])
             s.connect((webserver, port))
-            s.sendall(request)                           # send request to webserver
+            s.sendall(request)                   # send request to webserver
 
             while 1:
                 data = s.recv(self.config['MAX_REQUEST_LEN'])          # receive dataprintout from web server
                 if (len(data) > 0):
-                    print(data)
                     conn.send(data)                   # send to browser
                 else:
                     break
+
             s.close()
             conn.close()
         except socket.error as error_msg:
